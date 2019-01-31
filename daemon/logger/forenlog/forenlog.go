@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 //---------------
-	"os/exec"
-	"bytes"
-	"log"
+//	"os/exec"
+//	"bytes"
+//	"log"
 //---------------------
-	"bufio"
-	"io/ioutil"
+//	"bufio"
+//	"io/ioutil"
 //---------------
 //	"github.com/docker/docker/api/types"	
 //
@@ -69,24 +69,7 @@ type forenlogger struct {
 }
 
 
-//_________________________________________________________________
-
 /*
-func readNextBytes(file io.Reader, number int) []byte{
-    bytes := make([]byte, number)
-    _, err := file.Read(bytes)
-    if err != nil {
-        log.Fatal("err")
-    }
-    return bytes
-}
-
-func logx(){
-	data,_:= ioutil.ReadFile(os.Args[1])
-	buffer := bytes.NewBuffer(data)
-	fmt.Println(buffer)
-}
-*/
 func pstreeforMoby(){// this is working and updating data into pstreeforMobyOutput.txt file 29 Jan 2019
 	//pid := logPID()
 	//args := []string{"strace", "-p", logx()}
@@ -108,6 +91,9 @@ func pstreeforMoby(){// this is working and updating data into pstreeforMobyOutp
     	defer file.Close()
 	fmt.Fprintf(file, out.String())
 }
+*/
+
+
 //---------------------------strace output for running container--------------------
 //----------ioutil.ReadFile("this is reading from inspect program output file")-----
 //------------inspect.go is developed to provide process ID of running container----
@@ -121,6 +107,8 @@ Output is exec: already started
 Error is exec: already started
 */
 
+//---------------------------------------------------------------------
+/* function is working 21 Jan 2019; need to update for desired output
 var (
 	reader = bufio.NewReader(os.Stdin)
 )
@@ -133,7 +121,7 @@ func ReadFromFile() string {
     return str
 }
 
-func StraceforMoby(){// function is working 21 Jan 2019; need to update for desired output
+func StraceforMoby(){
 	app := "strace"
 	arg0 := "-p"
 	s := ReadFromFile()
@@ -146,7 +134,7 @@ func StraceforMoby(){// function is working 21 Jan 2019; need to update for desi
 		fmt.Println("Error is",cmd.Run()) 
 	}
 }
-
+*/
 //_________________________________________________________________
 
 //RegisterLogDriver registers the given logging driver builder with given logging driver name. 
@@ -159,8 +147,8 @@ func init() {
 		logrus.Fatal(err)
 	}
 //------------------------------------function called---------------------
-	pstreeforMoby()
-	StraceforMoby()
+//	pstreeforMoby()
+//	StraceforMoby()
 //------------------------------------------------------------------------	
 }
 
