@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"os"
-//	"os/exec"
-	"log"
-//
+//	"os"
+//	"log"
 
 	"github.com/docker/docker/api/types" 
 	"github.com/docker/docker/api/types/backend"
@@ -128,7 +126,7 @@ func (daemon *Daemon) containerInspect120(name string) (*v1p20.ContainerJSON, er
 	}, nil
 }
 
-//-----------------------logPID---------writing PID of running container------------
+/*-----------------------logPID---------writing PID of running container------------
 func logPID(a int){
 	file, err2 := os.Create("/var/log/p633782/runningcontianerPID.txt") //For more granular writes, open a file for writing; working 29 Jan 2019
 	if err2 != nil {
@@ -136,7 +134,7 @@ func logPID(a int){
 	}
 	fmt.Fprintln(file, a)
 }
-//--------------------------------------------------------------------------------
+*/--------------------------------------------------------------------------------
 
 func (daemon *Daemon) getInspectData(container *container.Container) (*types.ContainerJSONBase, error) {
 	// make a copy to play with
@@ -174,9 +172,9 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 		FinishedAt: container.State.FinishedAt.Format(time.RFC3339Nano),
 		Health:     containerHealth,
 	}
-//--------------------------------------logPID function called------------------
+/*--------------------------------------logPID function called------------------
 	logPID(containerState.Pid)
-//------------------------------------------------------------------------------
+*/------------------------------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
 		ID:           container.ID,
 		Created:      container.Created.Format(time.RFC3339Nano),
