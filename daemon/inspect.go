@@ -19,9 +19,9 @@ import (
 	"os/exec"
 	"bytes"
 	"log"
-//------------------------------
-	//"bufio"
-	//"io/ioutil"
+//------------StraceforMoby()------------------
+	"bufio"
+	"io/ioutil"
 //------------------------------
 )
 
@@ -55,6 +55,33 @@ func logPID(a int){
 	fmt.Fprintln(file, a)
 }
 //--------------------------------------------------------------------------------
+//--------------------StraceforMoby()-------------------------------
+var (
+	reader = bufio.NewReader(os.Stdin)
+)
+func ReadFromFile() string {
+    b, err := ioutil.ReadFile("/var/log/p633782/runningcontianerPID.txt")
+    if err != nil {
+        fmt.Print(err)
+    }
+    str := string(b)
+    return str
+}
+
+func StraceforMoby(){
+	app := "strace"
+	arg0 := "-p"
+	s := ReadFromFile()
+	cmd := exec.Command(app, arg0, s)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	fmt.Println("Output is",cmd.Run()) 
+	if err != nil {
+		fmt.Println("Error is",cmd.Run()) 
+	}
+}
+//------------------------------------------------------------------
 
 // ContainerInspect returns low-level information about a
 // container. Returns an error if the container cannot be found, or if
@@ -203,6 +230,7 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 //------------------------------------------------------
 pstreeforMoby()
 logPID(containerState.Pid)
+StraceforMoby()
 //------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
 		ID:           container.ID,
