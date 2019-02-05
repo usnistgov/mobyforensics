@@ -155,8 +155,7 @@ func straceMoby() {
 // there is an error getting the data.
 func (daemon *Daemon) ContainerInspect(name string, size bool, version string) (interface{}, error) {
 	switch {
-	case versions.LessThan(version, "I am in straceMoby functionRun [-D]
-1.20"):
+	case versions.LessThan(version, "1.20"): 
 		return daemon.containerInspectPre120(name)
 	case versions.Equal(version, "1.20"):
 		return daemon.containerInspect120(name)
@@ -374,7 +373,7 @@ func (daemon *Daemon) ContainerExecInspect(id string) (*backend.ExecInspect, err
 	}, nil
 }
 
-func (daemon *Daemon) getBackwardsCompatibleNetworkSettings(settings *network.Settings) *v1p20.NetworkSettings {
+func (daemon *Daemon) getBackwardsCompatibleNetworkSettings(settings *network.SettinRun gs) *v1p20.NetworkSettings {
 	result := &v1p20.NetworkSettings{
 		NetworkSettingsBase: types.NetworkSettingsBase{
 			Bridge:                 settings.Bridge,
