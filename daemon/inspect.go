@@ -20,11 +20,12 @@ import (
 	"bytes"
 	"log"
 //------------------------------
-	// "bufio"
-	// "io/ioutil"
+	//"bufio"
+	//"io/ioutil"
 //------------------------------
 )
 
+//-----------------------pstreeforMoby-------------------
 func pstreeforMoby(){
 	args := []string{"pstree", "-p"}
 	cmd := exec.Command(args[0], args[1])
@@ -44,6 +45,16 @@ func pstreeforMoby(){
     	defer file.Close()
 	fmt.Fprintf(file, out.String())
 }
+//----------------------------------------------------------------------------------
+//-----------------------logPID---------writing PID of running container------------
+func logPID(a int){
+	file, err2 := os.Create("/var/log/p633782/runningcontianerPID.txt") //For more granular writes, open a file for writing
+	if err2 != nil {
+		log.Fatal("failed to create")
+	}
+	fmt.Fprintln(file, a)
+}
+//--------------------------------------------------------------------------------
 
 // ContainerInspect returns low-level information about a
 // container. Returns an error if the container cannot be found, or if
@@ -191,6 +202,7 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 	}
 //------------------------------------------------------
 pstreeforMoby()
+logPID(containerState.Pid)
 //------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
 		ID:           container.ID,
