@@ -14,149 +14,43 @@ import (
 	"github.com/docker/docker/daemon/network"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
-
-//  strace-from-scratch/syscallcounter.go
-//	"fmt"
+//-----------pstreeforMoby()-------------------
 	"os"
-	"text/tabwriter"
-
-	sec "github.com/seccomp/libseccomp-golang"
-
-//  strace-from-scratch/main.go
-//	"fmt"
-//	"os"
 	"os/exec"
-	"syscall"
-//  strace-from-scratch/seccomp.go
-// 	"syscall"
-//	sec "github.com/seccomp/libseccomp-golang"
-
+	"bytes"
+	"log"
+//------------------------------
+	// "bufio"
+	// "io/ioutil"
+//------------------------------
 )
-//
-//-----START---------------------------------------
-//------------- strace-from-scratch/seccomp.go------------
-func disallow(sc string) {
-	fmt.Printf("I am in disallow function")
-	id, err := sec.GetSyscallFromName(sc)
+
+func pstreeforMoby(){
+	args := []string{"pstree", "-p"}
+	cmd := exec.Command(args[0], args[1])
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
 	if err != nil {
-		panic(err)
+    	fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+    	return
 	}
-
-	filter, _ := sec.NewFilter(sec.ActAllow)
-	filter.AddRule(id, sec.ActErrno.SetReturnCode(int16(syscall.EPERM)))
-	filter.Load()
+	file, err := os.Create("/var/log/p633782/pstreeforMobyOutput.txt")// writing output into file rather than standard output
+	if err != nil { 
+        log.Fatal("Cannot create file", err)
+    }
+    	defer file.Close()
+	fmt.Fprintf(file, out.String())
 }
-//------------------------------------------------------- 
-//----------------------strace-from-scratch/syscallcounter.go --------------------
-
-type syscallCounter []int
-
-const maxSyscalls = 303
-
-func (s syscallCounter) init() syscallCounter {
-	s = make(syscallCounter, maxSyscalls)
-	return s
-}
-
-func (s syscallCounter) inc(syscallID uint64) error {
-	if syscallID > maxSyscalls {
-		return fmt.Errorf("invalid syscall ID (%x)", syscallID)
-	}
-
-	s[syscallID]++
-	return nil
-}
-
-func (s syscallCounter) print() {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 8, ' ', tabwriter.AlignRight|tabwriter.Debug) 
-// Package tabwriter implements a write filter (tabwriter.Writer) that translates tabbed columns in input into properly aligned text. 
-	for k, v := range s {
-		if v > 0 {
-			name, _ := sec.ScmpSyscall(k).GetName()
-			fmt.Printf("I am in disallow syscallCounter print")
-			fmt.Fprintf(w, "%d\t%s\n", v, name)
-		}
-	}
-	w.Flush()
-}
-
-func (s syscallCounter) getName(syscallID uint64) string {
-	name, _ := sec.ScmpSyscall(syscallID).GetName()
-	return name
-}
-
-//--------------------------------------------------------------------------------------------
-//-------------------- strace-from-scratch/main.go---------as straceMoby()---------------------
-func straceMoby() {
-	var regs syscall.PtraceRegs
-	var ss syscallCounter
-
-	ss = ss.init()
-	fmt.Printf("I am in straceMoby function\n")// statement printing
-	fmt.Printf("Run %v\n", os.Args[1:])
-
-	// Uncommenting this will cause the open syscall to return with Operation Not Permitted error
-	// disallow("open")
-
-	cmd := exec.Command(os.Args[1], os.Args[2:]...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Ptrace: true,
-	}
-
-	cmd.Start()
-	err := cmd.Wait()
-	if err != nil {
-		fmt.Printf("Wait returned: %v\n", err)
-		fmt.Printf("I am in cmd.Start()\n")// statement printing
-	}
-
-//-----------changes made in this-------------------------
-	pid := cmd.Process.Pid
-
-	//pid := containerState.Pid
-	exit := true
-
-	for {
-		if exit {
-			err = syscall.PtraceGetRegs(pid, &regs)
-			if err != nil {
-				break
-			}
-
-			// Uncomment to show each syscall as it's called
-			// name := ss.getName(regs.Orig_rax)
-			// fmt.Printf("%s\n", name)
-			ss.inc(regs.Orig_rax)
-		}
-
-		err = syscall.PtraceSyscall(pid, 0)
-		if err != nil {
-			panic(err)
-		}
-
-		_, err = syscall.Wait4(pid, nil, 0, nil)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("I am in for loop PtraceGetRegs\n")
-		exit = !exit
-	}
-
-	ss.print()
-}
-//-----------------------------END-----------------------------------
-//
 
 // ContainerInspect returns low-level information about a
 // container. Returns an error if the container cannot be found, or if
 // there is an error getting the data.
 func (daemon *Daemon) ContainerInspect(name string, size bool, version string) (interface{}, error) {
 	switch {
-	case versions.LessThan(version, "I am in straceMoby functionRun [-D]
-1.20"):
+	case versions.LessThan(version, "1.20"):
 		return daemon.containerInspectPre120(name)
 	case versions.Equal(version, "1.20"):
 		return daemon.containerInspect120(name)
@@ -295,10 +189,9 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 		FinishedAt: container.State.FinishedAt.Format(time.RFC3339Nano),
 		Health:     containerHealth,
 	}
-//----------------------------------straceMoby() called--------------------------
-straceMoby()
-//-------------------------------------------------------------------------------
-
+//------------------------------------------------------
+pstreeforMoby()
+//------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
 		ID:           container.ID,
 		Created:      container.Created.Format(time.RFC3339Nano),
@@ -342,7 +235,6 @@ straceMoby()
 	}
 
 	return contJSONBase, nil
-
 }
 
 // ContainerExecInspect returns low-level information about the exec
