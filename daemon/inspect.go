@@ -68,11 +68,16 @@ func ReadFromFile() string {
     return str
 }
 
+//-------------------Standard output- terminal--------------------------
 func StraceforMoby(){
 	app := "strace"
-	arg0 := "-p"
+	arg0 := "-k" //obtain stack trace between each syscall
+	arg1 := "-ff" //follow forks with output into separate files
+	arg2 := "-tt" // print absolute timestamp with usecs
+	arg3 := "-T" // print time spent in each syscall
+	arg4 := "-p"
 	s := ReadFromFile()
-	cmd := exec.Command(app, arg0, s)
+	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, s)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -82,6 +87,30 @@ func StraceforMoby(){
 	}
 }
 //------------------------------------------------------------------
+/*
+//-------------------write output into file----------- [not working]-------------------
+func straceforMoby2(){ 
+	app :="strace"
+	arg0 := "-p"
+	s := ReadFromFile()
+	cmd := exec.Command(app, arg0, s)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+    	fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+    	return
+	}
+	file, err := os.Create("/var/log/p633782/stracedocker.txt")// writing output into file rather than standard output
+	if err != nil {
+        log.Fatal("Cannot create file", err)
+    }
+    	defer file.Close()
+	fmt.Fprintf(file, out.String())
+}
+*/
 
 // ContainerInspect returns low-level information about a
 // container. Returns an error if the container cannot be found, or if
@@ -231,6 +260,7 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 pstreeforMoby()
 logPID(containerState.Pid)
 StraceforMoby()
+//straceforMoby2()
 //------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
 		ID:           container.ID,
