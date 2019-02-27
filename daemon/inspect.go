@@ -20,11 +20,14 @@ import (
 	"bytes"
 	"log"
 //------------StraceforMoby()------------------
-	"bufio"
-	"io/ioutil"
+	"strconv"
+	//"io/ioutil"
 //------------------------------
 )
 
+
+// check it daemon.Pid 
+//var Pid int
 //-----------------------pstreeforMoby-------------------
 func pstreeforMoby(){
 	args := []string{"pstree", "-p"}
@@ -48,12 +51,22 @@ func pstreeforMoby(){
 //----------------------------------------------------------------------------------
 //-----------------------logPID---------writing PID of running container------------
 func logPID(a int){
-	file, err2 := os.Create("/var/log/p633782/runningcontianerPID.txt") //For more granular writes, open a file for writing
-	if err2 != nil {
-		log.Fatal("failed to create")
+	app := "strace"
+	arg0 := "-k" //obtain stack trace between each syscall
+	arg1 := "-ff" //follow forks with output into separate files
+	arg2 := "-tt" // print absolute timestamp with usecs
+	arg3 := "-T" // print time spent in each syscall
+	arg4 := "-p"
+	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, strconv.Itoa(a))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	fmt.Println("Output is",cmd.Run()) 
+	if err != nil {
+		fmt.Println("Error is",cmd.Run()) 
 	}
-	fmt.Fprintln(file, a)
 }
+/*
 //--------------------------------------------------------------------------------
 //--------------------StraceforMoby()-------------------------------
 var (
@@ -77,7 +90,7 @@ func StraceforMoby(){
 	arg3 := "-T" // print time spent in each syscall
 	arg4 := "-p"
 	s := ReadFromFile()
-	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, s)
+	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, logPID)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -87,6 +100,7 @@ func StraceforMoby(){
 	}
 }
 //------------------------------------------------------------------
+*/
 /*
 //-------------------write output into file----------- [not working]-------------------
 func straceforMoby2(){ 
@@ -110,8 +124,8 @@ func straceforMoby2(){
     	defer file.Close()
 	fmt.Fprintf(file, out.String())
 }
-*/
 
+*/
 // ContainerInspect returns low-level information about a
 // container. Returns an error if the container cannot be found, or if
 // there is an error getting the data.
@@ -241,6 +255,7 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 			Log:           append([]*types.HealthcheckResult{}, container.State.Health.Log...),
 		}
 	}
+	Pid = container.State.Pid
 
 	containerState := &types.ContainerState{
 		Status:     container.State.StateString(),
@@ -259,7 +274,7 @@ func (daemon *Daemon) getInspectData(container *container.Container) (*types.Con
 //------------------------------------------------------
 pstreeforMoby()
 logPID(containerState.Pid)
-StraceforMoby()
+//StraceforMoby()
 //straceforMoby2()
 //------------------------------------------------------
 	contJSONBase := &types.ContainerJSONBase{
